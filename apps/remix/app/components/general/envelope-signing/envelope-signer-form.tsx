@@ -100,14 +100,16 @@ export default function EnvelopeSignerForm() {
           <Label htmlFor="full-name">
             <Trans>Full Name</Trans>
           </Label>
-
           <Input
             type="text"
             id="full-name"
-            className="mt-2 bg-background"
+            className={`mt-2 bg-background ${(!fullName || !/\S+ \S+/.test(fullName)) ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             value={fullName}
             disabled={isNameLocked}
-            onChange={(e) => !isNameLocked && setFullName(e.target.value.trimStart())}
+            onChange={e => {
+              if (isNameLocked) return
+              setFullName(e.target.value.trimStart())
+            }}
           />
         </div>
 
