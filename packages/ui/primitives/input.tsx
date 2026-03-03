@@ -11,20 +11,39 @@ export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
 };
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, getBorderClassName, ...props }, ref) => {
+  ({ className, type, getBorderClassName, onFocus, onBlur, ...props }, ref) => {
+    const [isFocused, setIsFocused] = React.useState(false);
+    const hasCustomBorder = Boolean(getBorderClassName);
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(true);
+      onFocus?.(e);
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false);
+      onBlur?.(e);
+    };
+
     return (
       <input
+        {...props}
         type={type}
         className={cn(
-          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
-          getBorderClassName?.(),
+          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+          // Default focus ring only when not using custom border
+          !hasCustomBorder &&
+            'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          // When using custom border, only override border color on focus (single border)
+          hasCustomBorder && isFocused && getBorderClassName?.(),
           className,
           {
             'ring-2 !ring-red-500 transition-all': props['aria-invalid'],
           },
         )}
         ref={ref}
-        {...props}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
       />
     );
   },
