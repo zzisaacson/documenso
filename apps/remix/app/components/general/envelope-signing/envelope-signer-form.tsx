@@ -106,8 +106,13 @@ export default function EnvelopeSignerForm() {
             id="full-name"
             className="mt-2 bg-background"
             value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
             disabled={isNameLocked}
-            onChange={(e) => !isNameLocked && setFullName(e.target.value.trimStart())}
+            getBorderClassName={() =>
+              fullName.trim().includes(' ')
+                ? 'border-green-500'
+                : 'border-destructive'
+            }
           />
         </div>
 
