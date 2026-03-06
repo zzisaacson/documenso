@@ -7,6 +7,10 @@
         "@modelcontextprotocol/server-postgres",
         "postgresql://documenso:password@127.0.0.1:54320/documenso"
       ]
+    },
+    "github": {
+      "command": "node",
+      "args": [".cursor/run-github-mcp.js"]
     }
   }
 }
