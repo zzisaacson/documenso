@@ -1,6 +1,6 @@
 /**
  * Clears envelope/document data from the database while preserving a specific user
- * (and their org/team), then runs the demo metrics seed.
+ * (and their org/team), then runs the demo metrics seed (last 30 days + 1 week future).
  *
  * Preserves: User with email PRESERVE_USER_EMAIL and their Organisation, Team, etc.
  * Deletes: All Envelope, DocumentMeta, DocumentData; resets Counter.
@@ -12,7 +12,7 @@ import { prisma } from '..';
 
 const PRESERVE_USER_EMAIL = 'isaacsonzachary@gmail.com';
 
-async function main() {
+async function clearAndSeed() {
   const preserveUser = await prisma.user.findFirst({
     where: { email: PRESERVE_USER_EMAIL, disabled: false },
     include: {
@@ -58,11 +58,13 @@ async function main() {
     update: { value: 0 },
   });
 
-  console.log('[clear-and-seed-demo] Done. Run demo metrics seed:');
-  console.log('  npm run with:env -- npx tsx packages/prisma/scripts/seed-demo-metrics.ts');
+  console.log('[clear-and-seed-demo] Running demo metrics seed (last 30 days + 1 week future)...');
+  const { main: seedDemoMetrics } = await import('./seed-demo-metrics');
+  await seedDemoMetrics();
+  console.log('[clear-and-seed-demo] Done.');
 }
 
-main()
+clearAndSeed()
   .then(() => process.exit(0))
   .catch((err) => {
     console.error(err);

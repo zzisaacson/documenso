@@ -1,9 +1,14 @@
 /**
- * Seeds ~1 month of demo metrics data for admin dashboard and anomaly detection demos.
+ * Seeds ~1 month of demo metrics data for admin dashboard and anomaly detection demos,
+ * plus one week into the future so that as real time advances, pre-generated data appears.
  *
  * - Total documents per day: 40–70 (30 anomaly + 10–40 normal, random each day)
  * - Normal users' docs are spread randomly across the full day; ~30–60% completed per day
  * - Anomaly: one user creates exactly 30 documents at 2pm ET every day; those never get signed
+ * - Date range: last 30 days (including today) + 7 days in the future
+ *
+ * Admin charts only display data up to the present (e.g. getDailyDocumentsCreated uses
+ * createdAt < CURRENT_DATE + 1 day), so future days will appear as time advances.
  *
  * Run from repo root: npm run with:env -- npx tsx packages/prisma/scripts/seed-demo-metrics.ts
  */
@@ -26,7 +31,9 @@ import { prefixedId } from '@documenso/lib/universal/id';
 import { prisma } from '..';
 import { seedUser } from '../seed/users';
 
-const DAYS = 30;
+const DAYS_BACK = 30; // last 30 days including today
+const DAYS_FUTURE = 7;
+const DAYS = DAYS_BACK + DAYS_FUTURE; // 37 total
 const SPAM_DOCS_PER_DAY = 30;
 const NORMAL_DOCS_MIN = 10;
 const NORMAL_DOCS_MAX = 40;
@@ -63,7 +70,7 @@ function randomInt(min: number, max: number): number {
   return min + Math.floor(Math.random() * (max - min + 1));
 }
 
-async function main() {
+export async function main() {
   console.log('[seed-demo-metrics] Resolving or creating users and teams...');
 
   const existingUser = await prisma.user.findFirst({
@@ -154,12 +161,12 @@ async function main() {
   const minTotal = DAYS * (SPAM_DOCS_PER_DAY + NORMAL_DOCS_MIN);
   const maxTotal = DAYS * (SPAM_DOCS_PER_DAY + NORMAL_DOCS_MAX);
   console.log(
-    `[seed-demo-metrics] Creating ~${minTotal}-${maxTotal} envelopes over ${DAYS} days (30 anomaly/day + 10-40 normal/day)...`,
+    `[seed-demo-metrics] Creating ~${minTotal}-${maxTotal} envelopes over ${DAYS} days (last ${DAYS_BACK} + ${DAYS_FUTURE} future, 30 anomaly/day + 10-40 normal/day)...`,
   );
 
   const today = new Date();
   const startDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
-  startDate.setUTCDate(startDate.getUTCDate() - DAYS + 1);
+  startDate.setUTCDate(startDate.getUTCDate() - DAYS_BACK + 1); // first day = today - 29
 
   for (let d = 0; d < DAYS; d++) {
     const date = new Date(startDate);
@@ -294,16 +301,23 @@ async function main() {
 
   console.log('[seed-demo-metrics] Done. Summary:');
   console.log(
-    `  - ${DAYS} days, 10-40 normal + ${SPAM_DOCS_PER_DAY} anomaly docs/day (total 40-70/day)`,
+    `  - ${DAYS} days (last ${DAYS_BACK} days + ${DAYS_FUTURE} days future), 10-40 normal + ${SPAM_DOCS_PER_DAY} anomaly docs/day (total 40-70/day)`,
   );
   console.log(`  - ~30-60% of normal docs completed (signed) per day`);
   console.log(`  - Normal docs spread randomly across the full day`);
   console.log(`  - Anomaly user: demo-anomaly-spammer@documenso.local (30 docs at 2pm ET daily)`);
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+export async function runSeedDemoMetrics() {
+  return main();
+}
+
+const isEntryScript = process.argv[1]?.includes('seed-demo-metrics');
+if (isEntryScript) {
+  main()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    });
+}
