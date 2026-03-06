@@ -61,6 +61,9 @@ CLAUDE.md
 # agents
 .specs
 
+# MCP secrets (copy from .cursor/mcp-secrets.example.json and fill in)
+.cursor/mcp-secrets.json
+
 # scripts
 scripts/output*
 
