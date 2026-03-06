@@ -5,6 +5,8 @@ import { AppError, AppErrorCode } from '@documenso/lib/errors/app-error';
 import { createEnvelope } from '@documenso/lib/server-only/envelope/create-envelope';
 import { extractPdfPlaceholders } from '@documenso/lib/server-only/pdf/auto-place-fields';
 import { normalizePdf } from '@documenso/lib/server-only/pdf/normalize-pdf';
+import { assertRateLimit } from '@documenso/lib/server-only/rate-limit/rate-limit-middleware';
+import { documentUploadRateLimit } from '@documenso/lib/server-only/rate-limit/rate-limits';
 import { putPdfFileServerSide } from '@documenso/lib/universal/upload/put-file.server';
 
 import { insertFormValuesInPdf } from '../../../lib/server-only/pdf/insert-form-values-in-pdf';
@@ -44,6 +46,13 @@ export const createEnvelopeRoute = authenticatedProcedure
         folderId,
       },
     });
+
+    const rateLimitResult = await documentUploadRateLimit.check({
+      ip: ctx.metadata.requestMetadata.ipAddress ?? 'unknown',
+      identifier: String(user.id),
+    });
+
+    assertRateLimit(rateLimitResult);
 
     const { remaining, maximumEnvelopeItemCount } = await getServerLimits({
       userId: user.id,

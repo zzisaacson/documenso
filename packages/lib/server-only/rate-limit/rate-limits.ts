@@ -97,3 +97,9 @@ export const fileUploadRateLimit = createRateLimit({
   max: 20,
   window: '1m',
 });
+
+export const documentUploadRateLimit = createRateLimit({
+  action: 'document.upload',
+  max: 5,
+  window: '1m',
+});

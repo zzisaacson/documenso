@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 import { getDailyDocumentsCreated } from '@documenso/lib/server-only/admin/get-daily-documents-created';
+import { getHourlyDocumentsCreated } from '@documenso/lib/server-only/admin/get-hourly-documents-created';
 import { getDocumentStats } from '@documenso/lib/server-only/admin/get-documents-stats';
 import { getRecipientsStats } from '@documenso/lib/server-only/admin/get-recipients-stats';
 import {
@@ -28,6 +29,7 @@ import { LicenseClient } from '@documenso/lib/server-only/license/license-client
 import { getSignerConversionMonthly } from '@documenso/lib/server-only/user/get-signer-conversion';
 
 import { AdminDailyDocumentsChart } from '~/components/general/admin-daily-documents-chart';
+import { AdminHourlyDocumentsChart } from '~/components/general/admin-hourly-documents-chart';
 import { AdminLicenseCard } from '~/components/general/admin-license-card';
 import { MonthlyActiveUsersChart } from '~/components/general/admin-monthly-active-user-charts';
 import { AdminStatsSignerConversionChart } from '~/components/general/admin-stats-signer-conversion-chart';
@@ -47,6 +49,7 @@ export async function loader() {
     monthlyUsersWithDocuments,
     monthlyActiveUsers,
     dailyDocumentsCreated,
+    hourlyDocumentsCreated,
     licenseData,
   ] = await Promise.all([
     getUsersCount(),
@@ -57,6 +60,7 @@ export async function loader() {
     getUserWithSignedDocumentMonthlyGrowth(),
     getMonthlyActiveUsers(),
     getDailyDocumentsCreated(),
+    getHourlyDocumentsCreated(),
     LicenseClient.getInstance()?.getCachedLicense(),
   ]);
 
@@ -69,6 +73,7 @@ export async function loader() {
     monthlyUsersWithDocuments,
     monthlyActiveUsers,
     dailyDocumentsCreated,
+    hourlyDocumentsCreated,
     licenseData: licenseData || null,
   };
 }
@@ -85,6 +90,7 @@ export default function AdminStatsPage({ loaderData }: Route.ComponentProps) {
     monthlyUsersWithDocuments,
     monthlyActiveUsers,
     dailyDocumentsCreated,
+    hourlyDocumentsCreated,
     licenseData,
   } = loaderData;
 
@@ -166,6 +172,12 @@ export default function AdminStatsPage({ loaderData }: Route.ComponentProps) {
           <Trans>Charts</Trans>
         </h3>
         <div className="mt-5 grid grid-cols-2 gap-8">
+          <div className="col-span-2">
+            <AdminHourlyDocumentsChart
+              title={_(msg`Document uploads by hour (last 24 hours)`)}
+              data={hourlyDocumentsCreated}
+            />
+          </div>
           <div className="col-span-2">
             <AdminDailyDocumentsChart
               title={_(msg`Daily documents created (last 30 days)`)}
