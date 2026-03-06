@@ -37,9 +37,18 @@ const COMPLETED_RATIO_MAX = 0.6;
 const MINIMAL_PDF_BASE64 =
   'JVBERi0xLjQKJdPr6eEKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFszIDAgUl0KL0NvdW50IDEKL01lZGlhQm94IFswIDAgNjEyIDc5Ml0KPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA2MTIgNzkyXQovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0xlbmd0aCA0NAo+PgpzdHJlYW0KQlQKL0YxIDEyIFRmIDEwMCA3MDAgVGQKKERlbW8pIFRqCkVNCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago8PAovU2l6ZSA1Ci9Sb290IDMgMCBSCj4+CnN0YXJ0eHJlZgo2MQolJUVPRg==';
 
-/** 2pm ET for a given date (EST = 19:00 UTC; EDT = 18:00 UTC). Uses EST for simplicity. */
+/**
+ * 2pm America/New_York on the given calendar date, as a UTC Date.
+ * DST-aware: 2pm ET = 18:00 UTC (EDT) or 19:00 UTC (EST).
+ */
 function get2pmETUTC(year: number, month: number, day: number): Date {
-  return new Date(Date.UTC(year, month - 1, day, 19, 0, 0));
+  const noonUTC = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  const etHourAtNoonUTC = parseInt(
+    noonUTC.toLocaleString('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false }),
+    10,
+  );
+  const utcHour = 14 + (12 - etHourAtNoonUTC);
+  return new Date(Date.UTC(year, month - 1, day, utcHour, 0, 0));
 }
 
 /** Random time on the given day (UTC) for normal docs – full 24h spread for variance. */
@@ -149,15 +158,15 @@ async function main() {
   );
 
   const today = new Date();
-  const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - DAYS + 1);
+  const startDate = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+  startDate.setUTCDate(startDate.getUTCDate() - DAYS + 1);
 
   for (let d = 0; d < DAYS; d++) {
     const date = new Date(startDate);
-    date.setDate(date.getDate() + d);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
+    date.setUTCDate(startDate.getUTCDate() + d);
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth() + 1;
+    const day = date.getUTCDate();
 
     const normalCount = randomInt(NORMAL_DOCS_MIN, NORMAL_DOCS_MAX);
     const completedCount = Math.min(
