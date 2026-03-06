@@ -32,6 +32,7 @@ import { Card, CardContent } from '@documenso/ui/primitives/card';
 import { ElementVisible } from '@documenso/ui/primitives/element-visible';
 import { PDFViewerLazy } from '@documenso/ui/primitives/pdf-viewer/lazy';
 
+import { DocumentSigningAISummary } from '~/components/general/document-signing/document-signing-ai-summary';
 import { DocumentSigningAttachmentsPopover } from '~/components/general/document-signing/document-signing-attachments-popover';
 import { DocumentSigningAutoSign } from '~/components/general/document-signing/document-signing-auto-sign';
 import { DocumentSigningCheckboxField } from '~/components/general/document-signing/document-signing-checkbox-field';
@@ -368,6 +369,10 @@ export const DocumentSigningPageViewV1 = ({
                     ))
                     .otherwise(() => null)}
                 </p>
+
+                <hr className="mb-4 mt-4 border-border" />
+
+                <DocumentSigningAISummary token={recipient.token} />
 
                 <hr className="mb-8 mt-4 border-border" />
               </div>

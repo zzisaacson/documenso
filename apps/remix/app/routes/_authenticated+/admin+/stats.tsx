@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react';
 
+import { getDailyDocumentsCreated } from '@documenso/lib/server-only/admin/get-daily-documents-created';
 import { getDocumentStats } from '@documenso/lib/server-only/admin/get-documents-stats';
 import { getRecipientsStats } from '@documenso/lib/server-only/admin/get-recipients-stats';
 import {
@@ -26,6 +27,7 @@ import {
 import { LicenseClient } from '@documenso/lib/server-only/license/license-client';
 import { getSignerConversionMonthly } from '@documenso/lib/server-only/user/get-signer-conversion';
 
+import { AdminDailyDocumentsChart } from '~/components/general/admin-daily-documents-chart';
 import { AdminLicenseCard } from '~/components/general/admin-license-card';
 import { MonthlyActiveUsersChart } from '~/components/general/admin-monthly-active-user-charts';
 import { AdminStatsSignerConversionChart } from '~/components/general/admin-stats-signer-conversion-chart';
@@ -44,6 +46,7 @@ export async function loader() {
     signerConversionMonthly,
     monthlyUsersWithDocuments,
     monthlyActiveUsers,
+    dailyDocumentsCreated,
     licenseData,
   ] = await Promise.all([
     getUsersCount(),
@@ -53,6 +56,7 @@ export async function loader() {
     getSignerConversionMonthly(),
     getUserWithSignedDocumentMonthlyGrowth(),
     getMonthlyActiveUsers(),
+    getDailyDocumentsCreated(),
     LicenseClient.getInstance()?.getCachedLicense(),
   ]);
 
@@ -64,6 +68,7 @@ export async function loader() {
     signerConversionMonthly,
     monthlyUsersWithDocuments,
     monthlyActiveUsers,
+    dailyDocumentsCreated,
     licenseData: licenseData || null,
   };
 }
@@ -79,6 +84,7 @@ export default function AdminStatsPage({ loaderData }: Route.ComponentProps) {
     signerConversionMonthly,
     monthlyUsersWithDocuments,
     monthlyActiveUsers,
+    dailyDocumentsCreated,
     licenseData,
   } = loaderData;
 
@@ -160,6 +166,12 @@ export default function AdminStatsPage({ loaderData }: Route.ComponentProps) {
           <Trans>Charts</Trans>
         </h3>
         <div className="mt-5 grid grid-cols-2 gap-8">
+          <div className="col-span-2">
+            <AdminDailyDocumentsChart
+              title={_(msg`Daily documents created (last 30 days)`)}
+              data={dailyDocumentsCreated}
+            />
+          </div>
           <MonthlyActiveUsersChart title={_(msg`MAU (signed in)`)} data={monthlyActiveUsers} />
 
           <AdminStatsUsersWithDocumentsChart

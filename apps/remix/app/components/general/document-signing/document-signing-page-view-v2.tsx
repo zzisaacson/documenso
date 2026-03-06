@@ -25,6 +25,7 @@ import { SignFieldTextDialog } from '~/components/dialogs/sign-field-text-dialog
 import { useEmbedSigningContext } from '~/components/embed/embed-signing-context';
 
 import { BrandingLogo } from '../branding-logo';
+import { DocumentSigningAISummary } from '../document-signing/document-signing-ai-summary';
 import { DocumentSigningAttachmentsPopover } from '../document-signing/document-signing-attachments-popover';
 import { EnvelopeItemSelector } from '../envelope-editor/envelope-file-selector';
 import EnvelopeSignerForm from '../envelope-signing/envelope-signer-form';
@@ -115,6 +116,8 @@ export const DocumentSigningPageViewV2 = () => {
                 }}
               />
             </div>
+
+            <DocumentSigningAISummary token={recipient.token} />
 
             <div className="embed--DocumentWidgetContent mt-6 space-y-3">
               <EnvelopeSignerForm />
