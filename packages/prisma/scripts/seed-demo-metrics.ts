@@ -4,7 +4,7 @@
  *
  * - Total documents per day: 40–70 (30 anomaly + 10–40 normal, random each day)
  * - Normal users' docs are spread randomly across the full day; ~30–60% completed per day
- * - Anomaly: one user creates exactly 30 documents at 2pm ET every day; those never get signed
+ * - Anomaly: one user creates exactly 30 documents at 19:00 UTC every day; those never get signed
  * - Date range: last 30 days (including today) + 7 days in the future
  *
  * Admin charts only display data up to the present (e.g. getDailyDocumentsCreated uses
@@ -44,18 +44,9 @@ const COMPLETED_RATIO_MAX = 0.6;
 const MINIMAL_PDF_BASE64 =
   'JVBERi0xLjQKJdPr6eEKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFszIDAgUl0KL0NvdW50IDEKL01lZGlhQm94IFswIDAgNjEyIDc5Ml0KPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA2MTIgNzkyXQovQ29udGVudHMgNCAwIFIKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0xlbmd0aCA0NAo+PgpzdHJlYW0KQlQKL0YxIDEyIFRmIDEwMCA3MDAgVGQKKERlbW8pIFRqCkVNCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago8PAovU2l6ZSA1Ci9Sb290IDMgMCBSCj4+CnN0YXJ0eHJlZgo2MQolJUVPRg==';
 
-/**
- * 2pm America/New_York on the given calendar date, as a UTC Date.
- * DST-aware: 2pm ET = 18:00 UTC (EDT) or 19:00 UTC (EST).
- */
-function get2pmETUTC(year: number, month: number, day: number): Date {
-  const noonUTC = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-  const etHourAtNoonUTC = parseInt(
-    noonUTC.toLocaleString('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false }),
-    10,
-  );
-  const utcHour = 14 + (12 - etHourAtNoonUTC);
-  return new Date(Date.UTC(year, month - 1, day, utcHour, 0, 0));
+/** Returns 19:00 UTC on the given calendar date. Fixed; does not vary with DST. */
+function get19UTCOnDay(year: number, month: number, day: number): Date {
+  return new Date(Date.UTC(year, month - 1, day, 19, 0, 0));
 }
 
 /** Random time on the given day (UTC) for normal docs – full 24h spread for variance. */
@@ -187,7 +178,7 @@ export async function main() {
     );
     const docsThisDay = SPAM_DOCS_PER_DAY + normalCount;
 
-    const spammerCreatedAt = get2pmETUTC(year, month, day);
+    const spammerCreatedAt = get19UTCOnDay(year, month, day);
 
     await prisma.$transaction(async (tx) => {
       const documentDataIds: string[] = [];
@@ -305,7 +296,7 @@ export async function main() {
   );
   console.log(`  - ~30-60% of normal docs completed (signed) per day`);
   console.log(`  - Normal docs spread randomly across the full day`);
-  console.log(`  - Anomaly user: demo-anomaly-spammer@documenso.local (30 docs at 2pm ET daily)`);
+  console.log(`  - Anomaly user: demo-anomaly-spammer@documenso.local (30 docs at 19:00 UTC daily)`);
 }
 
 export async function runSeedDemoMetrics() {
